@@ -1,13 +1,12 @@
+env.example
 .env
-data/
-.venv/
-.pytest_cache/
-__pycache__/
-.vscode/
-.idea/
-.DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-__pycache__/*
+.venv   # virtual environment
+__pycache__ # python cache
+.pytest_cache # pytest cache
+.vscode # vscode settings
+.idea # idea settings
+.DS_Store # macos settings
+.env.local # local environment
+.env.development.local # development local environment
+.env.test.local # test local environment
+.env.production.local # production local environment

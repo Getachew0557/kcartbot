@@ -273,36 +273,55 @@ with tab1:
 
 # Analytics Tab
 with tab2:
-    st.markdown('<h2 class="sub-header">📊 Analytics Dashboard</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 class="sub-header">📊 Dynamic Analytics Dashboard</h2>', unsafe_allow_html=True)
+    
+    # Refresh button
+    if st.button("🔄 Refresh Analytics", type="secondary"):
+        st.rerun()
     
     try:
-        # Key metrics
+        # Enhanced Key metrics with trends
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
             total_users = execute_query("SELECT COUNT(*) as count FROM users").iloc[0]['count']
-            st.metric("Total Users", f"{total_users:,}")
+            active_users = execute_query("SELECT COUNT(*) as count FROM users WHERE is_active = 1").iloc[0]['count']
+            new_users_week = execute_query("SELECT COUNT(*) as count FROM users WHERE created_at >= date('now', '-7 days')").iloc[0]['count']
+            st.metric("Total Users", f"{total_users:,}", f"+{new_users_week} this week")
+            st.caption(f"{active_users} active users")
         
         with col2:
             total_products = execute_query("SELECT COUNT(*) as count FROM products").iloc[0]['count']
-            st.metric("Total Products", f"{total_products:,}")
+            available_products = execute_query("SELECT COUNT(*) as count FROM products WHERE quantity_available > 0").iloc[0]['count']
+            avg_price = execute_query("SELECT AVG(current_price) as avg_price FROM products WHERE current_price > 0").iloc[0]['avg_price'] or 0
+            st.metric("Total Products", f"{total_products:,}", f"{available_products} available")
+            st.caption(f"Avg price: ETB {avg_price:.2f}")
         
         with col3:
             total_orders = execute_query("SELECT COUNT(*) as count FROM orders").iloc[0]['count']
-            st.metric("Total Orders", f"{total_orders:,}")
+            recent_orders = execute_query("SELECT COUNT(*) as count FROM orders WHERE created_at >= date('now', '-7 days')").iloc[0]['count']
+            pending_orders = execute_query("SELECT COUNT(*) as count FROM orders WHERE status = 'pending'").iloc[0]['count']
+            st.metric("Total Orders", f"{total_orders:,}", f"+{recent_orders} this week")
+            st.caption(f"{pending_orders} pending orders")
         
         with col4:
-            total_revenue = execute_query("SELECT SUM(total_amount) as total FROM orders").iloc[0]['total']
-            st.metric("Total Revenue", f"ETB {total_revenue:,.2f}")
+            total_revenue = execute_query("SELECT SUM(total_amount) as total FROM orders").iloc[0]['total'] or 0
+            weekly_revenue = execute_query("SELECT SUM(total_amount) as total FROM orders WHERE created_at >= date('now', '-7 days')").iloc[0]['total'] or 0
+            avg_order_value = execute_query("SELECT AVG(total_amount) as avg_value FROM orders WHERE total_amount > 0").iloc[0]['avg_value'] or 0
+            st.metric("Total Revenue", f"ETB {total_revenue:,.2f}", f"ETB {weekly_revenue:,.2f} this week")
+            st.caption(f"Avg order: ETB {avg_order_value:.2f}")
     except Exception as e:
         st.error(f"Error loading metrics: {e}")
     
-    # Charts
+    # Enhanced Charts Section
+    st.markdown("### 📈 Advanced Analytics")
+    
+    # Row 1: User and Product Analytics
     col1, col2 = st.columns(2)
     
     try:
         with col1:
-            # User type distribution
+            # User analytics with more details
             user_types = execute_query("""
                 SELECT user_type, COUNT(*) as count 
                 FROM users 
@@ -313,47 +332,209 @@ with tab2:
                 fig_users = px.pie(user_types, values='count', names='user_type', 
                                   title="User Type Distribution",
                                   color_discrete_map={'customer': '#2E8B57', 'supplier': '#228B22'})
+                fig_users.update_traces(textposition='inside', textinfo='percent+label')
                 st.plotly_chart(fig_users, use_container_width=True)
         
         with col2:
-            # Product category distribution
+            # Product analytics with pricing
             product_cats = execute_query("""
-                SELECT category, COUNT(*) as count 
+                SELECT category, COUNT(*) as count, AVG(current_price) as avg_price
                 FROM products 
                 GROUP BY category
             """)
             
             if not product_cats.empty:
-                fig_products = px.bar(product_cats, x='category', y='count',
-                                    title="Products by Category",
+                fig_products = px.bar(product_cats, x='category', y='avg_price',
+                                    title="Average Price by Category",
                                     color='category',
-                                    color_discrete_map={'horticulture': '#2E8B57', 'dairy': '#228B22'})
+                                    color_discrete_sequence=['#2E8B57', '#228B22', '#32CD32'])
+                fig_products.update_layout(yaxis_title="Average Price (ETB)")
                 st.plotly_chart(fig_products, use_container_width=True)
     except Exception as e:
         st.error(f"Error loading charts: {e}")
     
-    # Order trends
-    st.markdown("### 📈 Order Trends")
+    # Row 2: Order and Revenue Analytics
+    col1, col2 = st.columns(2)
     
     try:
-        # Get orders by date
-        orders_by_date = execute_query("""
-            SELECT DATE(created_at) as date, COUNT(*) as orders, SUM(total_amount) as revenue
-            FROM orders 
-            WHERE created_at >= date('now', '-30 days')
-            GROUP BY DATE(created_at)
-            ORDER BY date
-        """)
+        with col1:
+            # Order trends with dual y-axis
+            orders_by_date = execute_query("""
+                SELECT DATE(created_at) as date, COUNT(*) as order_count, SUM(total_amount) as total_revenue
+                FROM orders 
+                WHERE created_at >= date('now', '-30 days')
+                GROUP BY DATE(created_at)
+                ORDER BY date
+            """)
+            
+            if not orders_by_date.empty:
+                fig_orders = go.Figure()
+                fig_orders.add_trace(go.Scatter(
+                    x=orders_by_date['date'],
+                    y=orders_by_date['order_count'],
+                    mode='lines+markers',
+                    name='Orders',
+                    line=dict(color='#2E8B57', width=3)
+                ))
+                fig_orders.update_layout(
+                    title="Orders Over Last 30 Days",
+                    xaxis_title="Date",
+                    yaxis_title="Number of Orders",
+                    hovermode='x unified'
+                )
+                st.plotly_chart(fig_orders, use_container_width=True)
         
-        if not orders_by_date.empty:
-            fig_trends = px.line(orders_by_date, x='date', y='orders',
-                               title="Orders Over Last 30 Days",
-                               color_discrete_sequence=['#2E8B57'])
-            st.plotly_chart(fig_trends, use_container_width=True)
-        else:
-            st.info("No order data available for the last 30 days.")
+        with col2:
+            # Revenue trends
+            if not orders_by_date.empty:
+                fig_revenue = go.Figure()
+                fig_revenue.add_trace(go.Scatter(
+                    x=orders_by_date['date'],
+                    y=orders_by_date['total_revenue'],
+                    mode='lines+markers',
+                    name='Revenue',
+                    line=dict(color='#228B22', width=3),
+                    fill='tonexty'
+                ))
+                fig_revenue.update_layout(
+                    title="Revenue Over Last 30 Days",
+                    xaxis_title="Date",
+                    yaxis_title="Revenue (ETB)",
+                    hovermode='x unified'
+                )
+                st.plotly_chart(fig_revenue, use_container_width=True)
     except Exception as e:
-        st.error(f"Error loading order trends: {e}")
+        st.error(f"Error loading trend charts: {e}")
+    
+    # Row 3: Pricing and Supplier Analytics
+    col1, col2 = st.columns(2)
+    
+    try:
+        with col1:
+            # Pricing trends
+            pricing_data = execute_query("""
+                SELECT p.name as product_name, p.current_price, p.category
+                FROM products p
+                WHERE p.current_price > 0
+                ORDER BY p.current_price DESC
+                LIMIT 15
+            """)
+            
+            if not pricing_data.empty:
+                fig_pricing = px.bar(pricing_data, x='product_name', y='current_price',
+                                    title="Top 15 Products by Price",
+                                    color='category',
+                                    color_discrete_map={'horticulture': '#2E8B57', 'dairy': '#228B22'})
+                fig_pricing.update_layout(xaxis_tickangle=-45, yaxis_title="Price (ETB)")
+                st.plotly_chart(fig_pricing, use_container_width=True)
+        
+        with col2:
+            # Supplier performance
+            supplier_performance = execute_query("""
+                SELECT u.name as supplier_name, 
+                       COUNT(DISTINCT p.id) as product_count,
+                       COUNT(o.id) as order_count,
+                       SUM(o.total_amount) as total_revenue,
+                       AVG(o.total_amount) as avg_order_value
+                FROM users u
+                LEFT JOIN products p ON u.id = p.supplier_id
+                LEFT JOIN orders o ON p.id = o.product_id
+                WHERE u.user_type = 'supplier'
+                GROUP BY u.id, u.name
+                HAVING order_count > 0
+                ORDER BY total_revenue DESC
+                LIMIT 10
+            """)
+            
+            if not supplier_performance.empty:
+                fig_suppliers = px.scatter(supplier_performance, 
+                                         x='product_count', y='total_revenue',
+                                         size='order_count',
+                                         hover_name='supplier_name',
+                                         title="Supplier Performance",
+                                         color='avg_order_value',
+                                         color_continuous_scale='Greens')
+                fig_suppliers.update_layout(
+                    xaxis_title="Number of Products",
+                    yaxis_title="Total Revenue (ETB)"
+                )
+                st.plotly_chart(fig_suppliers, use_container_width=True)
+    except Exception as e:
+        st.error(f"Error loading performance charts: {e}")
+    
+    # Detailed analytics tables
+    st.markdown("### 📋 Detailed Analytics")
+    
+    tab_analytics1, tab_analytics2, tab_analytics3, tab_analytics4 = st.tabs(["👥 Users", "🛒 Products", "📦 Orders", "💰 Revenue"])
+    
+    with tab_analytics1:
+        try:
+            users_detail = execute_query("""
+                SELECT name, phone, user_type, default_location, is_active, created_at
+                FROM users
+                ORDER BY created_at DESC
+                LIMIT 20
+            """)
+            if not users_detail.empty:
+                st.dataframe(users_detail, use_container_width=True)
+            else:
+                st.info("No user data available.")
+        except Exception as e:
+            st.error(f"Error loading user data: {e}")
+    
+    with tab_analytics2:
+        try:
+            products_detail = execute_query("""
+                SELECT p.name, p.name_amharic, p.category, p.unit, p.current_price, 
+                       p.quantity_available, p.expiry_date, u.name as supplier_name
+                FROM products p
+                JOIN users u ON p.supplier_id = u.id
+                ORDER BY p.current_price DESC
+                LIMIT 20
+            """)
+            if not products_detail.empty:
+                st.dataframe(products_detail, use_container_width=True)
+            else:
+                st.info("No product data available.")
+        except Exception as e:
+            st.error(f"Error loading product data: {e}")
+    
+    with tab_analytics3:
+        try:
+            orders_detail = execute_query("""
+                SELECT o.id, o.created_at, o.status, o.total_amount, o.quantity_ordered,
+                       u.name as customer_name, p.name as product_name, p.unit
+                FROM orders o
+                JOIN users u ON o.user_id = u.id
+                JOIN products p ON o.product_id = p.id
+                ORDER BY o.created_at DESC
+                LIMIT 20
+            """)
+            if not orders_detail.empty:
+                st.dataframe(orders_detail, use_container_width=True)
+            else:
+                st.info("No order data available.")
+        except Exception as e:
+            st.error(f"Error loading order data: {e}")
+    
+    with tab_analytics4:
+        try:
+            revenue_detail = execute_query("""
+                SELECT DATE(o.created_at) as date,
+                       COUNT(*) as orders,
+                       SUM(o.total_amount) as revenue,
+                       AVG(o.total_amount) as avg_order_value
+                FROM orders o
+                WHERE o.created_at >= date('now', '-30 days')
+                GROUP BY DATE(o.created_at)
+                ORDER BY date DESC
+            """)
+            if not revenue_detail.empty:
+                st.dataframe(revenue_detail, use_container_width=True)
+            else:
+                st.info("No revenue data available.")
+        except Exception as e:
+            st.error(f"Error loading revenue data: {e}")
 
 # Products Tab
 with tab3:
@@ -498,67 +679,267 @@ with tab4:
 
 # Knowledge Base Tab
 with tab5:
-    st.markdown('<h2 class="sub-header">🧠 Product Knowledge Base</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 class="sub-header">🧠 Enhanced Knowledge Base</h2>', unsafe_allow_html=True)
     
-    # Knowledge search
-    knowledge_query = st.text_input("🔍 Search Knowledge", placeholder="e.g., storage tips, nutritional info...")
+    # Knowledge search with AI
+    st.markdown("### 🔍 AI-Powered Knowledge Search")
+    knowledge_query = st.text_input("Ask anything about products, storage, nutrition, recipes...", 
+                                   placeholder="e.g., How to store tomatoes? What are the calories in bananas?")
     
-    col1, col2 = st.columns([1, 1])
+    col1, col2, col3 = st.columns([2, 1, 1])
     
     with col1:
-        knowledge_type = st.selectbox("Knowledge Type", ["All", "storage", "nutrition", "recipe", "seasonal"])
+        search_button = st.button("🔍 Search Knowledge", type="primary")
     
     with col2:
-        if st.button("Search Knowledge"):
-            if knowledge_query:
-                try:
-                    results = rag_service.search_knowledge(
-                        query=knowledge_query,
-                        knowledge_type=knowledge_type if knowledge_type != "All" else None,
-                        limit=10
-                    )
-                    
-                    if results:
-                        st.success(f"Found {len(results)} knowledge items")
-                        
-                        for result in results:
-                            with st.expander(f"{result['metadata']['knowledge_type'].title()}: {result['content'][:50]}..."):
-                                st.write(f"**Content:** {result['content']}")
-                                st.write(f"**Type:** {result['metadata']['knowledge_type']}")
-                                st.write(f"**Language:** {result['metadata']['language']}")
-                    else:
-                        st.info("No knowledge found for your query.")
-                        
-                except Exception as e:
-                    st.error(f"Error searching knowledge: {e}")
+        if st.button("💡 Get Random Tips"):
+            # Get random knowledge items
+            random_knowledge = execute_query("""
+                SELECT pk.id, pk.knowledge_type, pk.content, pk.language, pk.created_at,
+                       p.name as product_name
+                FROM product_knowledge pk
+                LEFT JOIN products p ON pk.product_id = p.id
+                ORDER BY RANDOM() 
+                LIMIT 3
+            """)
+            if not random_knowledge.empty:
+                st.session_state.random_tips = random_knowledge
+    
+    with col3:
+        if st.button("🔄 Refresh Knowledge"):
+            st.rerun()
+    
+    # Display search results
+    if search_button and knowledge_query:
+        try:
+            # Use RAG service for semantic search
+            results = rag_service.search_knowledge(
+                query=knowledge_query,
+                limit=10
+            )
+            
+            if results:
+                st.success(f"🤖 Found {len(results)} relevant knowledge items")
+                
+                for i, result in enumerate(results):
+                    with st.expander(f"📚 {result.get('title', 'Knowledge Item')} #{i+1}"):
+                        st.markdown(f"**Content:** {result.get('content', 'No content available')}")
+                        if result.get('metadata'):
+                            st.markdown(f"**Category:** {result.get('metadata', {}).get('category', 'N/A')}")
+                            st.markdown(f"**Tags:** {result.get('metadata', {}).get('tags', 'N/A')}")
+                        st.markdown(f"**Relevance Score:** {result.get('score', 0):.2f}")
+            else:
+                st.info("🤔 No specific knowledge found. Try asking about storage tips, nutritional info, or recipes!")
+                
+        except Exception as e:
+            st.error(f"Error searching knowledge: {e}")
+    
+    # Display random tips if requested
+    if hasattr(st.session_state, 'random_tips') and not st.session_state.random_tips.empty:
+        st.markdown("### 💡 Random Knowledge Tips")
+        for _, tip in st.session_state.random_tips.iterrows():
+            with st.expander(f"💡 {tip['knowledge_type'].title()} #{tip['id'][:8]}"):
+                st.markdown(tip['content'])
+                st.markdown(f"**Product:** {tip.get('product_name', 'N/A')}")
+                st.markdown(f"**Language:** {tip.get('language', 'N/A')}")
+                st.markdown(f"**Type:** {tip.get('knowledge_type', 'N/A')}")
+    
+    # Knowledge categories
+    st.markdown("### 📚 Knowledge Categories")
+    
+    tab_knowledge1, tab_knowledge2, tab_knowledge3, tab_knowledge4 = st.tabs([
+        "🍅 Product Info", "❄️ Storage Tips", "🥗 Nutrition", "👨‍🍳 Recipes"
+    ])
+    
+    with tab_knowledge1:
+        st.markdown("#### 🍅 Product Information")
+        try:
+            product_info = execute_query("""
+                SELECT pk.id, pk.product_id, pk.knowledge_type, pk.content, pk.language, pk.created_at,
+                       p.name as product_name, p.category as product_category
+                FROM product_knowledge pk
+                LEFT JOIN products p ON pk.product_id = p.id
+                WHERE pk.knowledge_type IN ('seasonal', 'nutrition', 'storage', 'recipe')
+                ORDER BY pk.created_at DESC
+                LIMIT 15
+            """)
+            if not product_info.empty:
+                st.info(f"📚 Showing {len(product_info)} knowledge items about products")
+                for _, item in product_info.iterrows():
+                    with st.expander(f"📦 {item['knowledge_type'].title()} - {item.get('product_name', 'General')} #{item['id'][:8]}"):
+                        st.markdown(item['content'])
+                        st.markdown(f"**Product:** {item.get('product_name', 'N/A')}")
+                        st.markdown(f"**Category:** {item.get('product_category', 'N/A')}")
+                        st.markdown(f"**Language:** {item.get('language', 'N/A')}")
+                        st.markdown(f"**Type:** {item.get('knowledge_type', 'N/A')}")
+            else:
+                st.info("No product information available.")
+        except Exception as e:
+            st.error(f"Error loading product info: {e}")
+    
+    with tab_knowledge2:
+        st.markdown("#### ❄️ Storage Tips")
+        try:
+            storage_tips = execute_query("""
+                SELECT pk.id, pk.product_id, pk.knowledge_type, pk.content, pk.language, pk.created_at,
+                       p.name as product_name
+                FROM product_knowledge pk
+                LEFT JOIN products p ON pk.product_id = p.id
+                WHERE pk.knowledge_type = 'storage' OR pk.content LIKE '%storage%' OR pk.content LIKE '%store%'
+                ORDER BY pk.created_at DESC
+                LIMIT 10
+            """)
+            if not storage_tips.empty:
+                for _, item in storage_tips.iterrows():
+                    with st.expander(f"❄️ Storage Tip #{item['id'][:8]}"):
+                        st.markdown(item['content'])
+                        st.markdown(f"**Product:** {item.get('product_name', 'N/A')}")
+                        st.markdown(f"**Language:** {item.get('language', 'N/A')}")
+                        st.markdown(f"**Type:** {item.get('knowledge_type', 'N/A')}")
+            else:
+                st.info("No storage tips available.")
+        except Exception as e:
+            st.error(f"Error loading storage tips: {e}")
+    
+    with tab_knowledge3:
+        st.markdown("#### 🥗 Nutritional Information")
+        try:
+            nutrition_info = execute_query("""
+                SELECT pk.id, pk.product_id, pk.knowledge_type, pk.content, pk.language, pk.created_at,
+                       p.name as product_name
+                FROM product_knowledge pk
+                LEFT JOIN products p ON pk.product_id = p.id
+                WHERE pk.knowledge_type = 'nutrition' OR pk.content LIKE '%nutrition%' OR pk.content LIKE '%calorie%' OR pk.content LIKE '%vitamin%'
+                ORDER BY pk.created_at DESC
+                LIMIT 10
+            """)
+            if not nutrition_info.empty:
+                for _, item in nutrition_info.iterrows():
+                    with st.expander(f"🥗 Nutrition Info #{item['id'][:8]}"):
+                        st.markdown(item['content'])
+                        st.markdown(f"**Product:** {item.get('product_name', 'N/A')}")
+                        st.markdown(f"**Language:** {item.get('language', 'N/A')}")
+                        st.markdown(f"**Type:** {item.get('knowledge_type', 'N/A')}")
+            else:
+                st.info("No nutritional information available.")
+        except Exception as e:
+            st.error(f"Error loading nutrition info: {e}")
+    
+    with tab_knowledge4:
+        st.markdown("#### 👨‍🍳 Recipes & Cooking")
+        try:
+            recipes = execute_query("""
+                SELECT pk.id, pk.product_id, pk.knowledge_type, pk.content, pk.language, pk.created_at,
+                       p.name as product_name
+                FROM product_knowledge pk
+                LEFT JOIN products p ON pk.product_id = p.id
+                WHERE pk.knowledge_type = 'recipe' OR pk.content LIKE '%recipe%' OR pk.content LIKE '%cook%' OR pk.content LIKE '%prepare%'
+                ORDER BY pk.created_at DESC
+                LIMIT 10
+            """)
+            if not recipes.empty:
+                for _, item in recipes.iterrows():
+                    with st.expander(f"👨‍🍳 Recipe #{item['id'][:8]}"):
+                        st.markdown(item['content'])
+                        st.markdown(f"**Product:** {item.get('product_name', 'N/A')}")
+                        st.markdown(f"**Language:** {item.get('language', 'N/A')}")
+                        st.markdown(f"**Type:** {item.get('knowledge_type', 'N/A')}")
+            else:
+                st.info("No recipes available.")
+        except Exception as e:
+            st.error(f"Error loading recipes: {e}")
     
     # Knowledge statistics
-    st.markdown("### 📊 Knowledge Statistics")
+    st.markdown("### 📊 Knowledge Base Statistics")
     
     try:
-        stats = rag_service.get_knowledge_stats()
+        # Get comprehensive stats
+        total_knowledge = execute_query("SELECT COUNT(*) as count FROM product_knowledge").iloc[0]['count']
+        knowledge_types = execute_query("SELECT DISTINCT knowledge_type FROM product_knowledge WHERE knowledge_type IS NOT NULL")
+        recent_knowledge = execute_query("SELECT COUNT(*) as count FROM product_knowledge WHERE created_at >= date('now', '-30 days')").iloc[0]['count']
         
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            st.metric("Total Items", f"{stats['total_items']:,}")
+            st.metric("Total Knowledge Items", f"{total_knowledge:,}")
         
         with col2:
-            st.metric("Knowledge Types", len(stats['knowledge_types']))
+            st.metric("Knowledge Types", f"{len(knowledge_types):,}")
         
         with col3:
-            st.metric("Languages", len(stats['languages']))
+            st.metric("Recent Additions", f"{recent_knowledge:,}")
         
-        # Knowledge type distribution
-        if stats['knowledge_types']:
-            knowledge_df = pd.DataFrame(list(stats['knowledge_types'].items()), 
-                                      columns=['Type', 'Count'])
-            fig_knowledge = px.pie(knowledge_df, values='Count', names='Type',
-                                 title="Knowledge Distribution by Type")
-            st.plotly_chart(fig_knowledge, use_container_width=True)
+        with col4:
+            avg_length = execute_query("SELECT AVG(LENGTH(content)) as avg_length FROM product_knowledge").iloc[0]['avg_length'] or 0
+            st.metric("Avg Content Length", f"{avg_length:.0f} chars")
+        
+        # Knowledge distribution chart
+        if not knowledge_types.empty:
+            knowledge_type_counts = execute_query("""
+                SELECT knowledge_type, COUNT(*) as count 
+                FROM product_knowledge 
+                WHERE knowledge_type IS NOT NULL
+                GROUP BY knowledge_type 
+                ORDER BY count DESC
+            """)
             
+            if not knowledge_type_counts.empty:
+                fig_categories = px.bar(knowledge_type_counts, x='knowledge_type', y='count',
+                                      title="Knowledge Distribution by Type",
+                                      color='count',
+                                      color_continuous_scale='Greens')
+                fig_categories.update_layout(xaxis_tickangle=-45)
+                st.plotly_chart(fig_categories, use_container_width=True)
+        
     except Exception as e:
-        st.error(f"Error getting knowledge stats: {e}")
+        st.error(f"Error getting knowledge statistics: {e}")
+    
+    # Quick knowledge actions
+    st.markdown("### ⚡ Quick Actions")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("🌱 Seasonal Tips"):
+            seasonal_query = "seasonal vegetables fruits Ethiopia"
+            try:
+                results = rag_service.search_knowledge(query=seasonal_query, limit=3)
+                if results:
+                    st.success("Found seasonal information!")
+                    for result in results:
+                        st.info(f"📅 {result.get('content', '')[:100]}...")
+                else:
+                    st.info("No seasonal tips found.")
+            except Exception as e:
+                st.error(f"Error searching seasonal tips: {e}")
+    
+    with col2:
+        if st.button("💊 Health Benefits"):
+            health_query = "health benefits nutrition vitamins"
+            try:
+                results = rag_service.search_knowledge(query=health_query, limit=3)
+                if results:
+                    st.success("Found health information!")
+                    for result in results:
+                        st.info(f"💊 {result.get('content', '')[:100]}...")
+                else:
+                    st.info("No health information found.")
+            except Exception as e:
+                st.error(f"Error searching health info: {e}")
+    
+    with col3:
+        if st.button("🍳 Cooking Tips"):
+            cooking_query = "cooking preparation recipes"
+            try:
+                results = rag_service.search_knowledge(query=cooking_query, limit=3)
+                if results:
+                    st.success("Found cooking information!")
+                    for result in results:
+                        st.info(f"🍳 {result.get('content', '')[:100]}...")
+                else:
+                    st.info("No cooking tips found.")
+            except Exception as e:
+                st.error(f"Error searching cooking tips: {e}")
 
 # Footer
 st.markdown("---")

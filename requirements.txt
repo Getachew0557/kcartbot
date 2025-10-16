@@ -5,9 +5,9 @@ pydantic==2.5.0
 python-multipart==0.0.6
 
 # Database
-sqlite3
-sqlalchemy
-alembic
+# sqlite3
+sqlalchemy==2.0.23
+alembic==1.13.1
 
 # Vector Database
 chromadb==0.4.18

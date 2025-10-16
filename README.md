@@ -51,7 +51,11 @@ graph TB
 
 ```
 kcartbot/
+├── .github/
+│   └── workflows/ 
+│      └── cicd.yml 
 ├── data/
+│   ├── __init__.py 
 │   └── generate_data.py          # Synthetic dataset generation
 ├── src/
 │   ├── main.py                  # FastAPI application
@@ -63,14 +67,23 @@ kcartbot/
 │   ├── mcp/
 │   │   └── server.py            # MCP server implementation
 │   ├── services/
+│   │   ├── __init__.py 
 │   │   ├── chat_service.py      # Gemini chat integration
 │   │   └── rag_service.py       # RAG with ChromaDB
 │   └── utils/
+│       ├── __init__.py 
 │       ├── language_detection.py # Multi-language support
 │       └── helpers.py           # Utility functions
 ├── tests/
 │   └── test_chat.py             # Test suite
+│   └── test_basic.py             # Test suite
+│   └── test_dashboard.py             # Test suite
+│   └── test_kcartbot.py             # Test suite
+├── dashboard.py
+├── demo.py
+├── pytest.ini
 ├── requirements.txt
+├── run_tests.py
 ├── env.example
 └── README.md
 ```

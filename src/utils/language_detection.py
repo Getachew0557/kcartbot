@@ -137,3 +137,9 @@ class LanguageTranslator:
 language_detector = LanguageDetector()
 language_translator = LanguageTranslator()
 
+
+def detect_language(text: str) -> str:
+    """Standalone function for language detection."""
+    return language_detector.detect_language(text)
+
+

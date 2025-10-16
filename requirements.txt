@@ -6,8 +6,8 @@ python-multipart==0.0.6
 
 # Database
 sqlite3
-sqlalchemy==2.0.23
-alembic==1.13.1
+sqlalchemy
+alembic
 
 # Vector Database
 chromadb==0.4.18

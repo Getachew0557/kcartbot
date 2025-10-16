@@ -24,16 +24,16 @@ def test_dashboard():
             print("• 'How should I store avocados?'")
             print("• 'What's the price of red onions?'")
             print("• 'I'm a supplier, I want to register'")
-            return True
+            assert True
         else:
             print(f"❌ Dashboard returned status code: {response.status_code}")
-            return False
+            assert False
     except requests.exceptions.ConnectionError:
         print("❌ Dashboard is not running. Please start it with: streamlit run dashboard.py")
-        return False
+        assert False
     except Exception as e:
         print(f"❌ Error testing dashboard: {e}")
-        return False
+        assert False
 
 if __name__ == "__main__":
     test_dashboard()

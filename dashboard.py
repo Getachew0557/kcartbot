@@ -683,8 +683,8 @@ with tab5:
     
     # Knowledge search with AI
     st.markdown("### 🔍 AI-Powered Knowledge Search")
-    knowledge_query = st.text_input("Ask anything about products, storage, nutrition, recipes...", 
-                                   placeholder="e.g., How to store tomatoes? What are the calories in bananas?")
+    knowledge_query = st.text_input("Ask anything about KcartBot, agriculture, products, or general questions...", 
+                                   placeholder="e.g., Hello, What is KcartBot?, How to store tomatoes?, What are the benefits of red onions?")
     
     col1, col2, col3 = st.columns([2, 1, 1])
     
@@ -709,27 +709,211 @@ with tab5:
         if st.button("🔄 Refresh Knowledge"):
             st.rerun()
     
-    # Display search results
+    # Display search results with enhanced responses
     if search_button and knowledge_query:
         try:
-            # Use RAG service for semantic search
-            results = rag_service.search_knowledge(
-                query=knowledge_query,
-                limit=10
-            )
+            # Handle general greetings and questions
+            query_lower = knowledge_query.lower().strip()
             
-            if results:
-                st.success(f"🤖 Found {len(results)} relevant knowledge items")
+            if query_lower in ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening']:
+                st.success("👋 **Hello! Welcome to KcartBot!**")
+                st.info("""
+                **🌱 KcartBot** is your Advanced AI Agri-Commerce Assistant for Ethiopia! 
                 
-                for i, result in enumerate(results):
-                    with st.expander(f"📚 {result.get('title', 'Knowledge Item')} #{i+1}"):
-                        st.markdown(f"**Content:** {result.get('content', 'No content available')}")
-                        if result.get('metadata'):
-                            st.markdown(f"**Category:** {result.get('metadata', {}).get('category', 'N/A')}")
-                            st.markdown(f"**Tags:** {result.get('metadata', {}).get('tags', 'N/A')}")
-                        st.markdown(f"**Relevance Score:** {result.get('score', 0):.2f}")
+                I can help you with:
+                - 🛒 **Product Discovery** - Find agricultural products
+                - 💰 **Pricing Information** - Get current market prices
+                - ❄️ **Storage Tips** - Learn how to store products properly
+                - 🥗 **Nutritional Information** - Understand health benefits
+                - 👨‍🍳 **Recipes** - Discover cooking ideas
+                - 📦 **Order Management** - Place and track orders
+                - 🌍 **Multi-language Support** - English, Amharic, Amhar-glish
+                
+                Ask me anything about agriculture, products, or how I can help you!
+                """)
+                
+            elif any(word in query_lower for word in ['what is kcartbot', 'about kcartbot', 'kcartbot info', 'tell me about']):
+                st.success("🤖 **About KcartBot**")
+                st.info("""
+                **🌱 KcartBot** is an Advanced AI Agri-Commerce Assistant designed specifically for Ethiopia's agricultural market.
+                
+                **🎯 Key Features:**
+                - **AI-Powered Chat** - Natural conversations using Gemini 2.5 Flash
+                - **Multi-language Support** - English, Amharic (አማርኛ), Amhar-glish
+                - **Product Knowledge Base** - Comprehensive information about agricultural products
+                - **Dynamic Pricing** - Real-time market price insights
+                - **Order Management** - Complete order lifecycle management
+                - **Supplier Network** - Connect with local suppliers
+                - **Customer Support** - 24/7 AI assistance
+                
+                **🌍 Focus Areas:**
+                - Horticulture products (fruits, vegetables)
+                - Dairy products
+                - Storage and preservation tips
+                - Nutritional information
+                - Seasonal availability
+                - Ethiopian market insights
+                
+                **💡 How to Use:**
+                - Ask questions about products
+                - Get storage and cooking tips
+                - Check prices and availability
+                - Place orders
+                - Learn about nutrition and health benefits
+                """)
+                
+            elif any(word in query_lower for word in ['help', 'how to use', 'commands', 'what can you do']):
+                st.success("🆘 **How to Use KcartBot**")
+                st.info("""
+                **📋 Available Commands & Questions:**
+                
+                **🛒 Product Queries:**
+                - "Show me available products"
+                - "What products are in season?"
+                - "Tell me about tomatoes"
+                - "What's the price of red onions?"
+                
+                **❄️ Storage & Preservation:**
+                - "How to store tomatoes?"
+                - "Best way to preserve vegetables"
+                - "Storage tips for dairy products"
+                
+                **🥗 Nutrition & Health:**
+                - "Nutritional benefits of carrots"
+                - "Calories in bananas"
+                - "Vitamins in spinach"
+                
+                **👨‍🍳 Cooking & Recipes:**
+                - "Tomato recipes"
+                - "How to cook Ethiopian vegetables"
+                - "Traditional cooking methods"
+                
+                **📊 General Information:**
+                - "Market trends"
+                - "Seasonal availability"
+                - "Supplier information"
+                
+                **🌍 Language Support:**
+                - Switch between English, Amharic, and Amhar-glish
+                - Ask questions in any supported language
+                """)
+                
+            elif any(word in query_lower for word in ['features', 'capabilities', 'what can', 'services']):
+                st.success("⚡ **KcartBot Capabilities**")
+                st.info("""
+                **🚀 Core Services:**
+                
+                **1. 🛒 Product Management**
+                - Browse 15+ agricultural products
+                - Real-time inventory tracking
+                - Price monitoring and alerts
+                - Product availability status
+                
+                **2. 💬 AI Chat Assistant**
+                - Natural language processing
+                - Multi-turn conversations
+                - Context-aware responses
+                - Tool-calling integration
+                
+                **3. 📚 Knowledge Base**
+                - 84+ knowledge items
+                - Storage tips and methods
+                - Nutritional information
+                - Recipe suggestions
+                - Seasonal guidance
+                
+                **4. 📊 Analytics Dashboard**
+                - Real-time business metrics
+                - User and order analytics
+                - Revenue tracking
+                - Supplier performance
+                
+                **5. 🌍 Multi-language Support**
+                - English (primary)
+                - Amharic (አማርኛ)
+                - Amhar-glish (mixed)
+                - Automatic language detection
+                
+                **6. 🔧 Advanced Features**
+                - MCP (Model Context Protocol) integration
+                - RAG (Retrieval-Augmented Generation)
+                - Vector database for semantic search
+                - Real-time data synchronization
+                """)
+                
+            elif any(word in query_lower for word in ['contact', 'support', 'help desk', 'customer service']):
+                st.success("📞 **Support & Contact**")
+                st.info("""
+                **🆘 Getting Help:**
+                
+                **💬 Chat Support:**
+                - Use the chat interface for immediate assistance
+                - AI-powered responses 24/7
+                - Context-aware help based on your questions
+                
+                **📚 Self-Service:**
+                - Browse the Knowledge Base for common questions
+                - Use the search function to find specific information
+                - Check the Analytics dashboard for system status
+                
+                **🔍 Common Issues:**
+                - **Login Problems:** Check your credentials and try refreshing
+                - **Order Issues:** Use the Orders tab to track and manage orders
+                - **Product Questions:** Search the Knowledge Base or ask in chat
+                - **Technical Issues:** Try refreshing the page or clearing browser cache
+                
+                **📋 Quick Actions:**
+                - Click "Get Random Tips" for helpful information
+                - Use the refresh buttons to get latest data
+                - Switch languages using the sidebar dropdown
+                - Check the sidebar for real-time statistics
+                
+                **🌱 Remember:** KcartBot is designed to be your comprehensive agricultural assistant!
+                """)
+                
+            elif any(word in query_lower for word in ['thank', 'thanks', 'appreciate']):
+                st.success("🙏 **You're Welcome!**")
+                st.info("""
+                **😊 Thank you for using KcartBot!**
+                
+                I'm here to help you with all your agricultural needs. Whether you're:
+                - 🛒 Looking for products
+                - 📚 Learning about storage and nutrition
+                - 👨‍🍳 Finding recipes
+                - 📊 Checking analytics
+                - 💬 Having conversations
+                
+                Feel free to ask me anything anytime! I'm always ready to assist you with Ethiopia's agricultural commerce.
+                
+                **🌱 Happy farming and shopping!**
+                """)
+                
             else:
-                st.info("🤔 No specific knowledge found. Try asking about storage tips, nutritional info, or recipes!")
+                # Use RAG service for semantic search
+                results = rag_service.search_knowledge(
+                    query=knowledge_query,
+                    limit=10
+                )
+                
+                if results:
+                    st.success(f"🤖 Found {len(results)} relevant knowledge items")
+                    
+                    for i, result in enumerate(results):
+                        with st.expander(f"📚 {result.get('title', 'Knowledge Item')} #{i+1}"):
+                            st.markdown(f"**Content:** {result.get('content', 'No content available')}")
+                            if result.get('metadata'):
+                                st.markdown(f"**Category:** {result.get('metadata', {}).get('category', 'N/A')}")
+                                st.markdown(f"**Tags:** {result.get('metadata', {}).get('tags', 'N/A')}")
+                            st.markdown(f"**Relevance Score:** {result.get('score', 0):.2f}")
+                else:
+                    st.info("🤔 No specific knowledge found. Try asking about:")
+                    st.markdown("""
+                    - **Products:** "Tell me about [product name]"
+                    - **Storage:** "How to store [product]"
+                    - **Nutrition:** "Benefits of [product]"
+                    - **Recipes:** "[Product] recipes"
+                    - **General:** "Hello", "What is KcartBot?", "Help"
+                    """)
                 
         except Exception as e:
             st.error(f"Error searching knowledge: {e}")
@@ -747,8 +931,8 @@ with tab5:
     # Knowledge categories
     st.markdown("### 📚 Knowledge Categories")
     
-    tab_knowledge1, tab_knowledge2, tab_knowledge3, tab_knowledge4 = st.tabs([
-        "🍅 Product Info", "❄️ Storage Tips", "🥗 Nutrition", "👨‍🍳 Recipes"
+    tab_knowledge1, tab_knowledge2, tab_knowledge3, tab_knowledge4, tab_knowledge5 = st.tabs([
+        "🍅 Product Info", "❄️ Storage Tips", "🥗 Nutrition", "👨‍🍳 Recipes", "🌱 General Info"
     ])
     
     with tab_knowledge1:
@@ -848,6 +1032,110 @@ with tab5:
                 st.info("No recipes available.")
         except Exception as e:
             st.error(f"Error loading recipes: {e}")
+    
+    with tab_knowledge5:
+        st.markdown("#### 🌱 General Information")
+        
+        # System overview
+        st.markdown("**🤖 About KcartBot System**")
+        st.info("""
+        **KcartBot** is an Advanced AI Agri-Commerce Assistant designed specifically for Ethiopia's agricultural market. 
+        Built with modern AI technologies including Gemini 2.5 Flash, MCP (Model Context Protocol), and RAG (Retrieval-Augmented Generation).
+        """)
+        
+        # System statistics
+        st.markdown("**📊 System Statistics**")
+        try:
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                total_users = execute_query("SELECT COUNT(*) as count FROM users").iloc[0]['count']
+                st.metric("Total Users", f"{total_users:,}")
+            
+            with col2:
+                total_products = execute_query("SELECT COUNT(*) as count FROM products").iloc[0]['count']
+                st.metric("Products Available", f"{total_products:,}")
+            
+            with col3:
+                total_knowledge = execute_query("SELECT COUNT(*) as count FROM product_knowledge").iloc[0]['count']
+                st.metric("Knowledge Items", f"{total_knowledge:,}")
+        except Exception as e:
+            st.error(f"Error loading system stats: {e}")
+        
+        # Features overview
+        st.markdown("**⚡ Key Features**")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("""
+            **🛒 Product Management**
+            - Real-time inventory tracking
+            - Dynamic pricing updates
+            - Supplier network integration
+            - Product availability status
+            
+            **💬 AI Chat Assistant**
+            - Natural language processing
+            - Multi-turn conversations
+            - Context-aware responses
+            - Tool-calling integration
+            """)
+        
+        with col2:
+            st.markdown("""
+            **📚 Knowledge Base**
+            - Storage tips and methods
+            - Nutritional information
+            - Recipe suggestions
+            - Seasonal guidance
+            
+            **🌍 Multi-language Support**
+            - English (primary)
+            - Amharic (አማርኛ)
+            - Amhar-glish (mixed)
+            - Automatic detection
+            """)
+        
+        # Technology stack
+        st.markdown("**🔧 Technology Stack**")
+        st.markdown("""
+        - **AI Model:** Gemini 2.5 Flash
+        - **Framework:** Model Context Protocol (MCP)
+        - **Database:** SQLite (relational) + ChromaDB (vector)
+        - **Backend:** FastAPI
+        - **Frontend:** Streamlit
+        - **Languages:** Python, SQL
+        - **Features:** RAG, Semantic Search, Real-time Analytics
+        """)
+        
+        # Quick help
+        st.markdown("**🆘 Quick Help**")
+        st.markdown("""
+        **Common Questions:**
+        - Type "Hello" for a welcome message
+        - Ask "What is KcartBot?" for detailed information
+        - Use "Help" to see available commands
+        - Search for specific products or topics
+        
+        **Navigation:**
+        - Use tabs to explore different sections
+        - Click refresh buttons for latest data
+        - Use sidebar for quick statistics
+        - Switch languages as needed
+        """)
+        
+        # Contact and support
+        st.markdown("**📞 Support**")
+        st.info("""
+        **Need Help?**
+        - Use the chat interface for immediate assistance
+        - Browse the Knowledge Base for common questions
+        - Check the Analytics dashboard for system status
+        - Try the random tips feature for helpful information
+        
+        **Remember:** KcartBot is your comprehensive agricultural assistant!
+        """)
     
     # Knowledge statistics
     st.markdown("### 📊 Knowledge Base Statistics")

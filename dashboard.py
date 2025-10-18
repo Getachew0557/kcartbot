@@ -231,7 +231,7 @@ with tab1:
                 # Add user message
                 st.session_state.messages.append({"role": "user", "content": user_input})
                 
-                # Get bot response
+                # Reqular chat processing
                 try:
                     result = asyncio.run(chat_service.process_message(
                         user_input, 

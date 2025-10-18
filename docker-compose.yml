@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  kcartbot:
+    build: .
+    container_name: kcartbot-app
+    ports:
+      - "8501:8501"  # Streamlit dashboard
+      - "8000:8000"  # FastAPI (optional)
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - DATABASE_URL=sqlite:///./kcartbot.db
+      - VECTOR_DB_PATH=./chroma_db
+      - DEBUG=False
+      - HOST=0.0.0.0
+      - PORT=8501
+    volumes:
+      - ./data:/app/data
+      - ./chroma_db:/app/chroma_db
+      - ./kcartbot.db:/app/kcartbot.db
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Separate API service
+  kcartbot-api:
+    build: .
+    container_name: kcartbot-api
+    ports:
+      - "8001:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - DATABASE_URL=sqlite:///./kcartbot.db
+      - VECTOR_DB_PATH=./chroma_db
+      - DEBUG=False
+      - HOST=0.0.0.0
+      - PORT=8000
+    volumes:
+      - ./data:/app/data
+      - ./chroma_db:/app/chroma_db
+      - ./kcartbot.db:/app/kcartbot.db
+      - ./logs:/app/logs
+    command: ["python", "src/main.py"]
+    restart: unless-stopped
+    profiles:
+      - api

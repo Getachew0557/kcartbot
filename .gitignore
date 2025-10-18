@@ -10,3 +10,8 @@ __pycache__ # python cache
 .env.development.local # development local environment
 .env.test.local # test local environment
 .env.production.local # production local environment
+setup_postgresql_windows.bat # setup postgresql windows batch script
+setup_postgresql_windows.ps1 # setup postgresql windows powershell script
+windows_postgresql_setup.py # windows postgresql setup python script
+postgresql_migration.py # postgresql migration python script
+postgresql_migration.py # postgresql migration python script

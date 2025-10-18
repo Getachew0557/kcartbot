@@ -4,7 +4,8 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import sqlite3
+# import sqlite3
+import psycopg2
 import asyncio
 import sys
 import os
@@ -121,10 +122,21 @@ def init_services():
         st.error(f"Error initializing services: {e}")
         return None, None, None
 
-# Database connection
+# # SQLite Database connection
+# def get_db_connection():
+#     """Get database connection."""
+#     return sqlite3.connect('kcartbot.db', check_same_thread=False)
+
+# PostgreSQL Database connection
 def get_db_connection():
     """Get database connection."""
-    return sqlite3.connect('kcartbot.db', check_same_thread=False)
+    return psycopg2.connect(
+        host="localhost",
+        port=5432,
+        user="postgres",
+        password="root",
+        database="kcartbot"
+    )
 
 def execute_query(query, params=None):
     """Execute a database query and return results."""
@@ -285,8 +297,10 @@ with tab2:
         
         with col1:
             total_users = execute_query("SELECT COUNT(*) as count FROM users").iloc[0]['count']
-            active_users = execute_query("SELECT COUNT(*) as count FROM users WHERE is_active = 1").iloc[0]['count']
-            new_users_week = execute_query("SELECT COUNT(*) as count FROM users WHERE created_at >= date('now', '-7 days')").iloc[0]['count']
+            # active_users = execute_query("SELECT COUNT(*) as count FROM users WHERE is_active = 1").iloc[0]['count']
+            active_users = execute_query("SELECT COUNT(*) as count FROM users WHERE is_active = true").iloc[0]['count']
+            # new_users_week = execute_query("SELECT COUNT(*) as count FROM users WHERE created_at >= date('now', '-7 days')").iloc[0]['count']
+            new_users_week = execute_query("SELECT COUNT(*) as count FROM users WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'").iloc[0]['count']
             st.metric("Total Users", f"{total_users:,}", f"+{new_users_week} this week")
             st.caption(f"{active_users} active users")
         
@@ -299,14 +313,16 @@ with tab2:
         
         with col3:
             total_orders = execute_query("SELECT COUNT(*) as count FROM orders").iloc[0]['count']
-            recent_orders = execute_query("SELECT COUNT(*) as count FROM orders WHERE created_at >= date('now', '-7 days')").iloc[0]['count']
+            # recent_orders = execute_query("SELECT COUNT(*) as count FROM orders WHERE created_at >= date('now', '-7 days')").iloc[0]['count']
+            recent_orders = execute_query("SELECT COUNT(*) as count FROM orders WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'").iloc[0]['count']
             pending_orders = execute_query("SELECT COUNT(*) as count FROM orders WHERE status = 'pending'").iloc[0]['count']
             st.metric("Total Orders", f"{total_orders:,}", f"+{recent_orders} this week")
             st.caption(f"{pending_orders} pending orders")
         
         with col4:
             total_revenue = execute_query("SELECT SUM(total_amount) as total FROM orders").iloc[0]['total'] or 0
-            weekly_revenue = execute_query("SELECT SUM(total_amount) as total FROM orders WHERE created_at >= date('now', '-7 days')").iloc[0]['total'] or 0
+            # weekly_revenue = execute_query("SELECT SUM(total_amount) as total FROM orders WHERE created_at >= date('now', '-7 days')").iloc[0]['total'] or 0
+            weekly_revenue = execute_query("SELECT SUM(total_amount) as total FROM orders WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'").iloc[0]['total'] or 0
             avg_order_value = execute_query("SELECT AVG(total_amount) as avg_value FROM orders WHERE total_amount > 0").iloc[0]['avg_value'] or 0
             st.metric("Total Revenue", f"ETB {total_revenue:,.2f}", f"ETB {weekly_revenue:,.2f} this week")
             st.caption(f"Avg order: ETB {avg_order_value:.2f}")
@@ -362,7 +378,7 @@ with tab2:
             orders_by_date = execute_query("""
                 SELECT DATE(created_at) as date, COUNT(*) as order_count, SUM(total_amount) as total_revenue
                 FROM orders 
-                WHERE created_at >= date('now', '-30 days')
+                WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'
                 GROUP BY DATE(created_at)
                 ORDER BY date
             """)
@@ -382,7 +398,8 @@ with tab2:
                     yaxis_title="Number of Orders",
                     hovermode='x unified'
                 )
-                st.plotly_chart(fig_orders, use_container_width=True)
+                # st.plotly_chart(fig_orders, use_container_width=True)
+                st.plotly_chart(fig_orders, width='stretch')
         
         with col2:
             # Revenue trends
@@ -441,7 +458,7 @@ with tab2:
                 LEFT JOIN orders o ON p.id = o.product_id
                 WHERE u.user_type = 'supplier'
                 GROUP BY u.id, u.name
-                HAVING order_count > 0
+                HAVING COUNT(o.id) > 0
                 ORDER BY total_revenue DESC
                 LIMIT 10
             """)
@@ -525,7 +542,7 @@ with tab2:
                        SUM(o.total_amount) as revenue,
                        AVG(o.total_amount) as avg_order_value
                 FROM orders o
-                WHERE o.created_at >= date('now', '-30 days')
+                WHERE o.created_at >= CURRENT_DATE - INTERVAL '30 days'
                 GROUP BY DATE(o.created_at)
                 ORDER BY date DESC
             """)
@@ -558,7 +575,7 @@ with tab3:
                    p.quantity_available, p.expiry_date, u.name as supplier_name
             FROM products p
             JOIN users u ON p.supplier_id = u.id
-            WHERE p.is_active = 1
+            WHERE p.is_active = true
         """
         
         if search_query:
@@ -589,15 +606,18 @@ with tab3:
                     st.write(f"**Price:** ETB {row['current_price']:.2f}")
                 
                 with col3:
-                    if row['expiry_date']:
-                        expiry = datetime.fromisoformat(row['expiry_date'])
-                        days_left = (expiry - datetime.now()).days
-                        if days_left < 0:
-                            st.error(f"Expired {abs(days_left)} days ago")
-                        elif days_left <= 3:
-                            st.warning(f"Expires in {days_left} days")
-                        else:
-                            st.success(f"Expires in {days_left} days")
+                    if row['expiry_date'] and pd.notna(row['expiry_date']):
+                        try:
+                            expiry = datetime.fromisoformat(str(row['expiry_date']))
+                            days_left = (expiry - datetime.now()).days
+                            if days_left < 0:
+                                st.error(f"Expired {abs(days_left)} days ago")
+                            elif days_left <= 3:
+                                st.warning(f"Expires in {days_left} days")
+                            else:
+                                st.success(f"Expires in {days_left} days")
+                        except (ValueError, TypeError) as e:
+                            st.info(f"Invalid expiry date: {row['expiry_date']}")
                     else:
                         st.info("No expiry date")
     else:
@@ -635,11 +655,11 @@ with tab4:
         
         if days_filter != "All":
             if days_filter == "Today":
-                query += " AND DATE(o.created_at) = DATE('now')"
+                query += " AND DATE(o.created_at) = CURRENT_DATE"
             elif days_filter == "Last 7 days":
-                query += " AND o.created_at >= date('now', '-7 days')"
+                query += " AND o.created_at >= CURRENT_DATE - INTERVAL '7 days'"
             elif days_filter == "Last 30 days":
-                query += " AND o.created_at >= date('now', '-30 days')"
+                query += " AND o.created_at >= CURRENT_DATE - INTERVAL '30 days'"
         
         if user_type_filter != "All":
             query += f" AND u.user_type = '{user_type_filter}'"
@@ -674,6 +694,7 @@ with tab4:
                 
                 with col3:
                     st.write(f"**Date:** {row['created_at']}")
+                    st.write(f"**Date:** {row['created_at'] if pd.notna(row['created_at']) else 'N/A'}")
     else:
         st.info("No orders found matching your criteria.")
 
@@ -1144,7 +1165,8 @@ with tab5:
         # Get comprehensive stats
         total_knowledge = execute_query("SELECT COUNT(*) as count FROM product_knowledge").iloc[0]['count']
         knowledge_types = execute_query("SELECT DISTINCT knowledge_type FROM product_knowledge WHERE knowledge_type IS NOT NULL")
-        recent_knowledge = execute_query("SELECT COUNT(*) as count FROM product_knowledge WHERE created_at >= date('now', '-30 days')").iloc[0]['count']
+        # recent_knowledge = execute_query("SELECT COUNT(*) as count FROM product_knowledge WHERE created_at >= date('now', '-30 days')").iloc[0]['count']
+        recent_knowledge = execute_query("SELECT COUNT(*) as count FROM product_knowledge WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'").iloc[0]['count']
         
         col1, col2, col3, col4 = st.columns(4)
         

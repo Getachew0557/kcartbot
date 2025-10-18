@@ -81,6 +81,9 @@ kcartbot/
 │   └── test_kcartbot.py             # Test suite
 ├── dashboard.py
 ├── demo.py
+├── Dockerfile                    # Docker container definition
+├── docker-compose.yml           # Docker Compose configuration
+├── .dockerignore                # Docker ignore file
 ├── pytest.ini
 ├── requirements.txt
 ├── run_tests.py
@@ -118,17 +121,42 @@ This creates:
 - 1 year of order history
 - Product knowledge base for RAG
 
-### 4. Launch the Web Dashboard
+### 4. Launch the Application
 
+#### Option A: Direct Streamlit Launch (Development)
 ```bash
-# Option 1: Launch dashboard directly
+# Launch dashboard directly
 streamlit run dashboard.py
+```
+Dashboard: `http://localhost:8501`
 
-# Option 2: Use the launcher script
-python launch_dashboard.py
+#### Option B: Docker Deployment (Production Ready)
+```bash
+# Set your API key
+export GEMINI_API_KEY=your_api_key_here
+
+# Build and run with Docker Compose
+docker-compose up -d
+
+# Access the application
+# Dashboard: http://localhost:8501
+# API: http://localhost:8000/docs
 ```
 
-The dashboard will be available at `http://localhost:8501`
+#### Option C: Easy Launch Script
+```bash
+# Launch with Streamlit (default)
+python launch_dashboard.py
+
+# Launch with Docker
+python launch_dashboard.py docker
+
+# Launch API server only
+python launch_dashboard.py api
+
+# Show help
+python launch_dashboard.py help
+```
 
 ### 5. Start the API Server (Optional)
 
@@ -311,15 +339,98 @@ The bot automatically detects and responds in:
 - **ChromaDB** for vector storage and semantic search
 - 1-year synthetic dataset with realistic Ethiopian market data
 
+## 🐳 Docker Deployment
+
+KcartBot is fully containerized and ready for production deployment.
+
+### Quick Start with Docker
+
+```bash
+# 1. Clone and setup
+git clone <repository-url>
+cd kcartbot
+cp env.example .env
+# Edit .env with your API key
+
+# 2. Launch with Docker
+docker-compose up -d
+
+# 3. Access the application
+# Dashboard: http://localhost:8501
+# API: http://localhost:8000/docs
+```
+
+### Docker Commands
+
+```bash
+# Build the image
+docker build -t kcartbot:latest .
+
+# Run the container
+docker run -d \
+  --name kcartbot \
+  -p 8501:8501 \
+  -p 8000:8000 \
+  -e GEMINI_API_KEY=your_api_key \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/chroma_db:/app/chroma_db \
+  kcartbot:latest
+
+# View logs
+docker logs kcartbot
+
+# Stop the container
+docker stop kcartbot
+
+# Remove the container
+docker rm kcartbot
+```
+
+### Docker Compose Services
+
+- **kcartbot**: Main application with Streamlit dashboard
+- **kcartbot-api**: Optional separate API service (use `--profile api`)
+
+```bash
+# Run with API service
+docker-compose --profile api up -d
+
+# Scale the application
+docker-compose up -d --scale kcartbot=3
+
+# View service status
+docker-compose ps
+
+# View logs
+docker-compose logs -f kcartbot
+```
+
+### Production Configuration
+
+The Docker setup includes:
+- **Health Checks**: Automatic service monitoring
+- **Volume Mounts**: Persistent data storage
+- **Environment Variables**: Secure configuration
+- **Port Mapping**: Dashboard (8501) and API (8000)
+- **Restart Policy**: Automatic restart on failure
+
+### Data Persistence
+
+Docker volumes ensure data persistence:
+- `./data` → Application data
+- `./chroma_db` → Vector database
+- `./kcartbot.db` → SQLite database
+- `./logs` → Application logs
+
 ## 🚀 Future Improvements
 
-1. **Cloud Deployment**: Move to AWS/GCP with containerization
+1. **Cloud Deployment**: Move to AWS/GCP with Kubernetes
 2. **Real-time Notifications**: WebSocket support for live updates
 3. **Payment Integration**: Mobile money and bank transfer support
-4. **Image Generation**: AI-powered product image creation
-5. **Analytics Dashboard**: Supplier and customer insights
-6. **Mobile App**: React Native or Flutter mobile application
-7. **Voice Interface**: Speech-to-text and text-to-speech support
+4. **Analytics Dashboard**: Advanced supplier and customer insights
+5. **Mobile App**: React Native or Flutter mobile application
+6. **Voice Interface**: Speech-to-text and text-to-speech support
+7. **Image Recognition**: Upload and analyze product images
 
 ## 📊 Performance Metrics
 

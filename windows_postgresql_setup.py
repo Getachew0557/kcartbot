@@ -48,7 +48,7 @@ def check_postgresql_installation():
     # Check if PostgreSQL bin directory exists
     if not os.path.exists(POSTGRES_CONFIG["postgresql_path"]):
         print(f"❌ PostgreSQL not found at: {POSTGRES_CONFIG['postgresql_path']}")
-        print("Please install PostgreSQL 18 or update the path in the script.")
+        print("Please install PostgreSQL 17 or update the path in the script.")
         return False
     
     # Check if psql command is available
@@ -118,7 +118,7 @@ def setup_postgresql_windows():
             print("❌ Could not connect to PostgreSQL server!")
             print("Please ensure PostgreSQL service is running:")
             print("1. Open Services (services.msc)")
-            print("2. Find 'postgresql-x64-16' service")
+            print("2. Find 'postgresql-x64-17' service")
             print("3. Start the service if it's not running")
             return False
         else:
@@ -226,6 +226,58 @@ def create_tables_windows(cursor):
         )
     """)
     
+    # MLOps tables
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS models (
+            model_id VARCHAR PRIMARY KEY,
+            name VARCHAR NOT NULL,
+            version VARCHAR NOT NULL,
+            model_type VARCHAR NOT NULL,
+            file_path VARCHAR NOT NULL,
+            created_at TIMESTAMP NOT NULL,
+            performance_metrics TEXT NOT NULL,
+            tags TEXT NOT NULL,
+            description TEXT NOT NULL,
+            is_active BOOLEAN DEFAULT TRUE,
+            UNIQUE(name, version)
+        )
+    """)
+    
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS system_metrics (
+            id SERIAL PRIMARY KEY,
+            timestamp TIMESTAMP NOT NULL,
+            metric_name VARCHAR NOT NULL,
+            value REAL NOT NULL,
+            unit VARCHAR NOT NULL,
+            tags TEXT NOT NULL
+        )
+    """)
+    
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS model_performance (
+            id SERIAL PRIMARY KEY,
+            timestamp TIMESTAMP NOT NULL,
+            model_name VARCHAR NOT NULL,
+            model_version VARCHAR NOT NULL,
+            metric_name VARCHAR NOT NULL,
+            value REAL NOT NULL,
+            context TEXT NOT NULL
+        )
+    """)
+    
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS health_results (
+            id SERIAL PRIMARY KEY,
+            check_name VARCHAR NOT NULL,
+            status VARCHAR NOT NULL,
+            message VARCHAR NOT NULL,
+            details TEXT NOT NULL,
+            timestamp TIMESTAMP NOT NULL,
+            response_time_ms REAL NOT NULL
+        )
+    """)
+    
     # Create indexes
     indexes = [
         "CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone)",
@@ -237,8 +289,13 @@ def create_tables_windows(cursor):
         "CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status)",
         "CREATE INDEX IF NOT EXISTS idx_pricing_product ON pricing_history(product_id)",
         "CREATE INDEX IF NOT EXISTS idx_knowledge_product ON product_knowledge(product_id)",
-        "CREATE INDEX IF NOT EXISTS idx_knowledge_type ON product_knowledge(knowledge_type)"
-
+        "CREATE INDEX IF NOT EXISTS idx_knowledge_type ON product_knowledge(knowledge_type)",
+        "CREATE INDEX IF NOT EXISTS idx_system_timestamp ON system_metrics(timestamp)",
+        "CREATE INDEX IF NOT EXISTS idx_system_metric ON system_metrics(metric_name)",
+        "CREATE INDEX IF NOT EXISTS idx_model_timestamp ON model_performance(timestamp)",
+        "CREATE INDEX IF NOT EXISTS idx_model_name ON model_performance(model_name)",
+        "CREATE INDEX IF NOT EXISTS idx_health_timestamp ON health_results(timestamp)",
+        "CREATE INDEX IF NOT EXISTS idx_health_name ON health_results(check_name)"
     ]
     
     for index_sql in indexes:
@@ -459,7 +516,7 @@ def update_env_file_windows():
         updated_lines = []
         for line in lines:
             if line.startswith("DATABASE_URL="):
-                updated_lines.append("DATABASE_URL=postgresql://postgres:root@localhost:5433/kcartbot\n")
+                updated_lines.append("DATABASE_URL=postgresql://postgres:root@localhost:5432/kcartbot\n")
             else:
                 updated_lines.append(line)
         
@@ -569,7 +626,7 @@ def main():
     if args.all or args.setup:
         if not check_postgresql_installation():
             print("\n❌ PostgreSQL installation check failed!")
-            print("Please install PostgreSQL 18 or update the path in the script.")
+            print("Please install PostgreSQL 17 or update the path in the script.")
             return
         
         success &= setup_postgresql_windows()

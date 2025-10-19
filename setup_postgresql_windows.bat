@@ -19,8 +19,8 @@ if errorlevel 1 (
 
 REM Check if PostgreSQL is installed
 if not exist "C:\Program Files\PostgreSQL\17\bin\psql.exe" (
-    echo ERROR: PostgreSQL 16 not found at C:\Program Files\PostgreSQL\16\bin
-    echo Please install PostgreSQL 16 or update the path in this script
+    echo ERROR: PostgreSQL 17 not found at C:\Program Files\PostgreSQL\17\bin
+    echo Please install PostgreSQL 17 or update the path in this script
     pause
     exit /b 1
 )
@@ -70,10 +70,10 @@ echo ================================================
 echo   Setup completed successfully!
 echo ================================================
 echo.
-@REM echo Next steps:
-@REM echo 1. Test MLOps components: python mlops_demo.py
-@REM echo 2. Launch dashboard: python launch_dashboard.py
-@REM echo 3. Open browser: http://localhost:8501
+echo Next steps:
+echo 1. Test MLOps components: python mlops_demo.py
+echo 2. Launch dashboard: python launch_dashboard.py
+echo 3. Open browser: http://localhost:8501
 echo.
 echo Manual commands available with:
 echo python windows_postgresql_setup.py --manual

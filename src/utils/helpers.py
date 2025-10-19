@@ -14,7 +14,7 @@ def generate_id() -> str:
 
 def hash_phone(phone: str) -> str:
     """Hash phone number for privacy."""
-    return hashlib.sha256(phone.encode()).hexdigest()[:16]
+    return hashlib.sha256(phone.encode()).hexdigest()[:17]
 
 
 def validate_phone(phone: str) -> bool:

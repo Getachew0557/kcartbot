@@ -4,7 +4,7 @@
 
 ### 📋 **Prerequisites**
 
-1. **PostgreSQL 18 Installed** at `C:\Program Files\PostgreSQL\18\bin`
+1. **PostgreSQL 17 Installed** at `C:\Program Files\PostgreSQL\17\bin`
 2. **Python 3.9+** installed
 3. **KcartBot project** cloned/downloaded
 
@@ -48,17 +48,17 @@ python launch_dashboard.py
 ```cmd
 # Open Command Prompt as Administrator
 # Start PostgreSQL service
-net start postgresql-x64-18
+net start postgresql-x64-17
 
 # Or use Services Manager
 # Press Win + R, type 'services.msc'
-# Find 'postgresql-x64-18' and start it
+# Find 'postgresql-x64-17' and start it
 ```
 
 ### **Step 2: Open PostgreSQL Command Line**
 ```cmd
 # Navigate to PostgreSQL bin directory
-cd "C:\Program Files\PostgreSQL\18\bin"
+cd "C:\Program Files\PostgreSQL\17\bin"
 
 # Connect to PostgreSQL
 psql -U postgres
@@ -97,7 +97,7 @@ psql -U postgres -d kcartbot
 notepad .env
 
 # Update DATABASE_URL line to:
-DATABASE_URL=postgresql://postgres:root@localhost:5433/kcartbot
+DATABASE_URL=postgresql://postgres:root@localhost:5432/kcartbot
 ```
 
 ### **Step 6: Run Migration**
@@ -148,7 +148,7 @@ python windows_postgresql_setup.py --test
 **Expected Output:**
 ```
 ✅ PostgreSQL connection successful!
-   Version: PostgreSQL 18.x
+   Version: PostgreSQL 17.x
    Tables: users, products, orders, ...
    users: 50 rows
    products: 15 rows
@@ -192,10 +192,10 @@ SELECT COUNT(*) FROM health_results;
 ### **Issue 1: PostgreSQL Service Not Running**
 ```cmd
 # Check service status
-sc query postgresql-x64-18
+sc query postgresql-x64-17
 
 # Start service
-net start postgresql-x64-18
+net start postgresql-x64-17
 
 # Or use Services Manager
 services.msc
@@ -216,10 +216,10 @@ ALTER USER postgres PASSWORD 'root';
 ### **Issue 3: Database Connection Refused**
 ```cmd
 # Check if PostgreSQL is listening
-netstat -an | findstr 5433
+netstat -an | findstr 5432
 
 # Check PostgreSQL configuration
-# Edit: C:\Program Files\PostgreSQL\18\data\postgresql.conf
+# Edit: C:\Program Files\PostgreSQL\17\data\postgresql.conf
 # Ensure: listen_addresses = 'localhost'
 ```
 
@@ -227,7 +227,7 @@ netstat -an | findstr 5433
 ```cmd
 # Run Command Prompt as Administrator
 # Or check pg_hba.conf file
-# C:\Program Files\PostgreSQL\18\data\pg_hba.conf
+# C:\Program Files\PostgreSQL\17\data\pg_hba.conf
 ```
 
 ### **Issue 5: Python Dependencies**
@@ -274,10 +274,10 @@ python windows_postgresql_setup.py --manual
 ### **Manual Setup**
 ```cmd
 # Start service
-net start postgresql-x64-18
+net start postgresql-x64-17
 
 # Connect to PostgreSQL
-cd "C:\Program Files\PostgreSQL\18\bin"
+cd "C:\Program Files\PostgreSQL\17\bin"
 psql -U postgres
 
 # Create database
@@ -309,7 +309,7 @@ python launch_dashboard.py
 ### **.env File**
 ```bash
 # PostgreSQL Configuration
-DATABASE_URL=postgresql://postgres:root@localhost:5433/kcartbot
+DATABASE_URL=postgresql://postgres:root@localhost:5432/kcartbot
 
 # Gemini API Configuration
 GEMINI_API_KEY=your_api_key_here
@@ -323,10 +323,10 @@ PORT=8000
 ### **Alternative PostgreSQL URLs**
 ```bash
 # With psycopg2
-DATABASE_URL=postgresql+psycopg2://postgres:root@localhost:5433/kcartbot
+DATABASE_URL=postgresql+psycopg2://postgres:root@localhost:5432/kcartbot
 
 # With asyncpg
-DATABASE_URL=postgresql+asyncpg://postgres:root@localhost:5433/kcartbot
+DATABASE_URL=postgresql+asyncpg://postgres:root@localhost:5432/kcartbot
 ```
 
 ---
@@ -344,8 +344,8 @@ When everything is working correctly, you should see:
 
 ---
 
-**Setup Status**: Ready for Windows PostgreSQL 18  
+**Setup Status**: Ready for Windows PostgreSQL 17  
 **Database**: kcartbot  
 **User**: postgres  
 **Password**: root  
-**Port**: 5433
+**Port**: 5432

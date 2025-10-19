@@ -23,7 +23,7 @@ $postgresPath = "C:\Program Files\PostgreSQL\17\bin\psql.exe"
 if (Test-Path $postgresPath) {
     Write-Host "✅ PostgreSQL found at: C:\Program Files\PostgreSQL\17\bin" -ForegroundColor Green
 } else {
-    Write-Host "❌ ERROR: PostgreSQL 17 not found at C:\Program Files\PostgreSQL\16\bin" -ForegroundColor Red
+    Write-Host "❌ ERROR: PostgreSQL 17 not found at C:\Program Files\PostgreSQL\17\bin" -ForegroundColor Red
     Write-Host "Please install PostgreSQL 17 or update the path in this script" -ForegroundColor Yellow
     Read-Host "Press Enter to exit"
     exit 1
@@ -47,15 +47,15 @@ Write-Host ""
 
 # Check PostgreSQL service
 Write-Host "🔍 Checking PostgreSQL service..." -ForegroundColor Yellow
-$service = Get-Service -Name "postgresql-x64-18" -ErrorAction SilentlyContinue
+$service = Get-Service -Name "postgresql-x64-17" -ErrorAction SilentlyContinue
 if ($service) {
     if ($service.Status -eq "Running") {
         Write-Host "✅ PostgreSQL service is running" -ForegroundColor Green
     } else {
         Write-Host "⚠️  PostgreSQL service is not running. Starting..." -ForegroundColor Yellow
-        Start-Service -Name "postgresql-x64-18"
+        Start-Service -Name "postgresql-x64-17"
         Start-Sleep -Seconds 5
-        if ((Get-Service -Name "postgresql-x64-18").Status -eq "Running") {
+        if ((Get-Service -Name "postgresql-x64-17").Status -eq "Running") {
             Write-Host "✅ PostgreSQL service started successfully" -ForegroundColor Green
         } else {
             Write-Host "❌ Failed to start PostgreSQL service" -ForegroundColor Red
@@ -126,18 +126,18 @@ Write-Host "Manual commands available with:" -ForegroundColor Yellow
 Write-Host "python windows_postgresql_setup.py --manual" -ForegroundColor White
 Write-Host ""
 
-# # Ask if user wants to test the application
-# $testApp = Read-Host "Would you like to test the MLOps demo now? (y/n)"
-# if ($testApp -eq "y" -or $testApp -eq "Y") {
-#     Write-Host ""
-#     Write-Host "🧪 Running MLOps demo..." -ForegroundColor Yellow
-#     try {
-#         python mlops_demo.py --component registry
-#         Write-Host "✅ MLOps demo completed successfully" -ForegroundColor Green
-#     } catch {
-#         Write-Host "❌ MLOps demo failed" -ForegroundColor Red
-#     }
-# }
+# Ask if user wants to test the application
+$testApp = Read-Host "Would you like to test the MLOps demo now? (y/n)"
+if ($testApp -eq "y" -or $testApp -eq "Y") {
+    Write-Host ""
+    Write-Host "🧪 Running MLOps demo..." -ForegroundColor Yellow
+    try {
+        python mlops_demo.py --component registry
+        Write-Host "✅ MLOps demo completed successfully" -ForegroundColor Green
+    } catch {
+        Write-Host "❌ MLOps demo failed" -ForegroundColor Red
+    }
+}
 
 Write-Host ""
 Read-Host "Press Enter to exit"

@@ -1,0 +1,26 @@
+{
+  "deployment_id": "rag-model-1.2.0-staging-1760898539",
+  "config": {
+    "model_name": "rag-model",
+    "model_version": "1.2.0",
+    "environment": "staging",
+    "replicas": 2,
+    "resources": {
+      "cpu": "200m",
+      "memory": "512Mi"
+    },
+    "health_check_endpoint": "/health",
+    "rollback_version": null
+  },
+  "status": "active",
+  "created_at": "2025-10-19T21:28:59.936708",
+  "updated_at": "2025-10-19T21:29:04.941417",
+  "logs": [
+    "Starting deployment...",
+    "Pulling model artifacts...",
+    "Starting containers...",
+    "Running health checks...",
+    "Deployment successful!"
+  ],
+  "health_status": {}
+}

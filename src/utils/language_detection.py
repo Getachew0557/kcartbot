@@ -84,7 +84,7 @@ st.markdown("""
         border: 2px solid #e9ecef;
         border-radius: 25px;
         padding: 12px 20px;
-        font-size: 16px;
+        font-size: 17px;
         transition: all 0.3s ease;
     }
     .chat-input:focus {

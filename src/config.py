@@ -1,7 +1,7 @@
 """Configuration settings for KcartBot application."""
 
 import os
-from typing import List
+from typing import List, ClassVar
 from pydantic_settings import BaseSettings
 
 
@@ -25,6 +25,13 @@ class Settings(BaseSettings):
     # Application Settings
     app_name: str = "KcartBot"
     app_version: str = "1.0.0"
+
+    # Image Generation Configuration
+    image_generation_enabled: bool = True
+    default_image_api: str = "huggingface"
+    huggingface_token: str = ""
+    unsplash_access_key: str = ""
+    generated_images_dir: str = "data/generated_images"
     
     @property
     def supported_languages_list(self) -> List[str]:
@@ -35,7 +42,5 @@ class Settings(BaseSettings):
         env_file = ".env"
         case_sensitive = False
 
-
 # Global settings instance
 settings = Settings()
-

@@ -353,10 +353,12 @@ Below is a short demo showcasing the KcartBot customer journey and supplier onbo
 - MLOps registry/monitoring/health demo
 
 
-<video width="100%" controls>
-  <source src="data/demo.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+### 🎥 Demo Video
+Watch the full e-commerce cart bot demo showcasing customer journeys, supplier interactions, and AI-driven features:
+
+<iframe width="100%" height="315" src="https://www.youtube.com/embed/fIgYrxmA9wk?autoplay=1&mute=1&loop=1&playlist=fIgYrxmA9wk" title="KcartBot Demo: E-commerce Cart Bot" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+*Video: A demo of the KcartBot e-commerce assistant, highlighting multi-turn chat, ordering, and image generation.*
 
 ## 📈 Future Improvements
 

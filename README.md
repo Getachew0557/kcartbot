@@ -341,8 +341,9 @@ python mlops_demo.py --component monitoring
 python mlops_demo.py --component health
 ```
 
-## 🧭 Demo Checklist (for the 45-min exam)
+## 🧭 Demo Checklist
 
+Below is a short demo showcasing the KcartBot customer journey and supplier onboarding:
 - Architecture walkthrough (LLM ↔ MCP ↔ PostgreSQL/Chroma ↔ Image Gen)
 - Generate 1-year data; show competitor and transaction samples
 - Customer journey including COD 5s auto-confirmation
@@ -351,10 +352,11 @@ python mlops_demo.py --component health
 - Docker bring-up and persistence explanation
 - MLOps registry/monitoring/health demo
 
+
+![KcartBot Demo](data/demo.gif)
+
 ## 📈 Future Improvements
 
-- Kubernetes + cloud Postgres/managed vector DB
-- WebSocket live updates and supplier notifications
 - Voice interface (STT/TTS) and mobile UI
 - Fine-tuned models and adaptive pricing strategies
 

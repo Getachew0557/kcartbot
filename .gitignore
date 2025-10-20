@@ -15,3 +15,4 @@ setup_postgresql_windows.ps1 # setup postgresql windows powershell script
 windows_postgresql_setup.py # windows postgresql setup python script
 postgresql_migration.py # postgresql migration python script
 postgresql_migration.py # postgresql migration python script
+demo.mp4

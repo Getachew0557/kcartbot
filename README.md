@@ -353,7 +353,10 @@ Below is a short demo showcasing the KcartBot customer journey and supplier onbo
 - MLOps registry/monitoring/health demo
 
 
-![KcartBot Demo](data/demo.gif)
+<video width="100%" controls>
+  <source src="data/demo.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ## 📈 Future Improvements
 

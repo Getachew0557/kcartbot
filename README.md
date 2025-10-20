@@ -9,9 +9,10 @@ graph TB
     A[User Input] --> B[FastAPI Backend]
     B --> C[Gemini 2.5 Flash]
     C --> D[MCP Server]
-    D --> E[SQLite Database]
+    D --> E[PostgreSQL Database]
     D --> F[ChromaDB Vector Store]
     D --> G[RAG Service]
+    D --> H[Image Generation Service]
     
     E --> H[Users]
     E --> I[Products]
@@ -20,13 +21,19 @@ graph TB
     
     F --> L[Product Knowledge]
     G --> M[Semantic Search]
+
+    H --> O[Hugging Face API]
+    H --> P[Unsplash API]
+    H --> Q[Replicate API]
     
     B --> N[Multi-language Support]
     N --> O[English]
     N --> P[Amharic]
     N --> Q[Amhar-glish]
-```
 
+    V[Streamlit Dashboard] --> B
+    W[Docker Container] --> B
+```
 ## 🚀 Key Features
 
 ### Customer Experience
@@ -34,18 +41,24 @@ graph TB
 - **RAG-powered Discovery**: Ask questions like "How should I store tomatoes?" or "Which has more calories, banana or avocado?"
 - **Conversational Ordering**: Natural language ordering with delivery scheduling
 - **COD Payment**: Cash on Delivery with simulated confirmation
+- **AI Product Images**: Realistic AI-generated product images
 
 ### Supplier Experience
 - **Smart Pricing Insights**: AI-powered competitor analysis and pricing suggestions
 - **Product Management**: Easy product addition with expiry tracking
 - **Order Management**: Real-time order notifications and scheduling
 - **Flash Sale Suggestions**: Automated suggestions for expiring products
+- **Visual Product Catalog**: AI-generated product images for better presentation
 
 ### Technical Features
 - **Model Context Protocol (MCP)**: Structured tool-calling framework
 - **Vector Database**: ChromaDB for semantic knowledge retrieval
+- **AI Chatting and Image Generation**: Gemini, Hugging Face, Unsplash, and Replicate integration
+- **PostgreSQL Database**: Robust production-ready database
+- **MLOps Pipeline**: Automated testing and deployment
 - **Synthetic Data**: 1-year historical dataset for realistic testing
 - **RESTful API**: Complete FastAPI backend with comprehensive endpoints
+- **Docker Containerization**: Full containerization with Docker Compose
 
 ## 📁 Project Structure
 
@@ -56,10 +69,12 @@ kcartbot/
 │      └── cicd.yml 
 ├── data/
 │   ├── __init__.py 
-│   └── generate_data.py          # Synthetic dataset generation
+│   ├── generate_data.py          # Synthetic dataset generation
+│   └── generated_images/         # Generated product images
 ├── src/
 │   ├── main.py                  # FastAPI application
 │   ├── config.py                # Configuration settings
+│   ├── image_generation.py      # Image generation service
 │   ├── models/                  # Database models
 │   │   └── __init__.py
 │   ├── database/
@@ -74,6 +89,10 @@ kcartbot/
 │       ├── __init__.py 
 │       ├── language_detection.py # Multi-language support
 │       └── helpers.py           # Utility functions
+├── demos/                       #demo scripts
+│   └── demo_image_generation.py
+├── scripts/                     # Utility scripts
+│   └── verify_api_tokens.py
 ├── tests/
 │   └── test_chat.py             # Test suite
 │   └── test_basic.py             # Test suite
@@ -93,22 +112,58 @@ kcartbot/
 
 ## 🛠️ Setup Instructions
 
-### 1. Install Dependencies
+### 1. Clone repository:
+```bash
+git clone https://github.com/Getachew0557/kcartbot.git
+```
+### 2. create virtual environment:
+```bash 
+cd kcartbot
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+```
+
+### 3. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Environment Configuration
+### 4. Environment Configuration
 
-Copy the environment template:
+- Create `.env` file inside the main directory:
+
+- Configure your environment variables in .env.
+
 ```bash
-cp env.example .env
+# Gemini API
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Database
+DATABASE_URL= your_postgresql_database_here
+
+# Image Generation APIs (FREE)
+HUGGINGFACE_TOKEN=your_free_huggingface_token_here
+UNSPLASH_ACCESS_KEY=your_unsplash_access_key_here
+REPLICATE_API_TOKEN=your_replicate_token_here
+
+# Image Generation Settings
+IMAGE_GENERATION_ENABLED=true
+DEFAULT_IMAGE_API=huggingface
+GENERATED_IMAGES_DIR=data/generated_images
+
+# Application Configuration
+DEBUG=True
+HOST=0.0.0.0
+PORT=8000
+
+# Language Detection
+DEFAULT_LANGUAGE=en
+SUPPORTED_LANGUAGES=en,am,am-latn
+
 ```
 
-The API key is already configured in the code, but you can modify it in `.env` if needed.
-
-### 3. Generate Synthetic Data
+### 5. Generate Synthetic Data
 
 ```bash
 python data/generate_data.py
@@ -121,7 +176,7 @@ This creates:
 - 1 year of order history
 - Product knowledge base for RAG
 
-### 4. Launch the Application
+### 6. Launch the Application
 
 #### Option A: Direct Streamlit Launch (Development)
 ```bash
@@ -158,7 +213,7 @@ python launch_dashboard.py api
 python launch_dashboard.py help
 ```
 
-### 5. Start the API Server (Optional)
+### 7. Start the API Server (Optional)
 
 ```bash
 python src/main.py
@@ -183,10 +238,12 @@ The KcartBot dashboard provides a beautiful, interactive web interface with:
 - **Real-time Data**: Live updates from the database
 
 ### 🛒 Product Management
+- **AI Image Generation**: Generate realistic product images using Hugging Face, Unsplash, and Replicate
 - **Product Search**: Find products by name or category
 - **Inventory Tracking**: View stock levels and expiry dates
 - **Supplier Information**: See which supplier provides each product
 - **Price Monitoring**: Track current prices and availability
+- **Batch Image Generation**: Generate images for multiple products at once
 
 ### 📦 Order Management
 - **Order Filtering**: Filter by status, date range, user type
@@ -200,12 +257,45 @@ The KcartBot dashboard provides a beautiful, interactive web interface with:
 - **Statistics**: View knowledge base analytics
 - **Interactive Results**: Expandable knowledge items
 
+### 🖼️ AI Image Generation
+- KcartBot now includes advanced AI image generation capabilities
+
+### Supported APIs
+- **Hugging Face**: Free AI model inference with Stable Diffusion
+- **Unsplash**: High-quality stock photography
+- **Replicate**: Premium AI models with free tier
+- **Fallback System**: Professional SVG placeholders
+
+## 🐳 Docker & MLOps
+
+### Complete Docker Stack
+
+- You can simply configure docker-compose file based on your data
+
 ## 🧪 Testing the System
 
 ### Web Dashboard
 Open your browser and go to `http://localhost:8501` to access the interactive dashboard.
 
+### Image Generation Demo
+
+```bash 
+python demos/demo_image_generation.py
+```
+### API Token Verification
+```bash
+python scripts/verify_api_tokens.py
+```
 ### API Endpoints
+
+#### Image Generation
+```bash
+# Generate product image via API
+curl -X POST "http://localhost:8000/generate-image" \
+  -H "Content-Type: application/json" \
+  -d '{"product_name": "Tomato", "style": "realistic"}'
+
+```
 
 #### Chat Interface
 ```bash
@@ -287,6 +377,15 @@ python tests/test_chat.py
    Bot: "Order Confirmed for COD. Your order will be delivered tomorrow. Thank you!"
    ```
 
+   4. **Product Discovery with Images**
+   ```bash
+    User: "Show me tomatoes with images"
+    Bot: "Here are fresh tomatoes! [AI-generated image] They're rich in lycopene and vitamin C..."
+
+    User: "Generate a realistic image of avocado"
+    Bot: "Here's a photorealistic avocado image: [AI-generated image] Perfect for guacamole!"
+  ```
+
 ### Supplier Flow
 
 1. **Registration**:
@@ -334,12 +433,18 @@ The bot automatically detects and responds in:
 - Sentence transformers for embeddings
 - Product knowledge covering storage, nutrition, recipes, and seasonal info
 
+### Image Generation System
+- **Multi-API Support**: Hugging Face, Unsplash, Replicate
+- **Fallback Mechanism**: Professional placeholders if APIs fail
+- **Caching System**: Store and reuse generated images
+- **Quality Optimization**: Enhanced prompts for realistic results
+
 ### Database Schema
-- **SQLite** for transactional data (users, products, orders, pricing)
+- **PostgreSQL** for transactional data (users, products, orders, pricing)
 - **ChromaDB** for vector storage and semantic search
 - 1-year synthetic dataset with realistic Ethiopian market data
 
-## 🐳 Docker Deployment
+## 🐳 Production Deployment
 
 KcartBot is fully containerized and ready for production deployment.
 
@@ -439,6 +544,11 @@ Docker volumes ensure data persistence:
 - **RAG Retrieval**: Top-5 relevant results
 - **Database**: Handles 1000+ concurrent users
 - **Vector Search**: Sub-second semantic search
+
+## 🚀 Future Improvements
+- **Cloud Deployment**: AWS/GCP with Kubernetes orchestration
+- **Real-time Notifications**: WebSocket support for live updates
+- **Voice Interface**: Speech-to-text and text-to-speech support
 
 ## 🤝 Contributing
 

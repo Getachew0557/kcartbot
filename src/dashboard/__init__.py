@@ -35,8 +35,15 @@ def setup_page_config():
 def render_sidebar():
     """Render the sidebar with quick actions and stats."""
     with st.sidebar:
-        st.image("https://via.placeholder.com/200x100/2E8B57/FFFFFF?text=KcartBot", width=200)
+        # Clean logo section
+        st.markdown("""
+        <div style="padding: 1.5rem 0;">
+            <div style="font-size: 3rem; margin-left: 2.5rem;">🌱</div>
+        </div>
+        """, unsafe_allow_html=True)
         
+        st.markdown("---")
+
         st.markdown("### 🎯 Quick Actions")
         
         # Language selection
